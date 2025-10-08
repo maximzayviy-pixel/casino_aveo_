@@ -103,24 +103,60 @@ export default function Home() {
     setIsLoading(false)
   }, [])
 
-  // Simulate shared game state updates
+  // Real-time shared game state updates
   useEffect(() => {
     const interval = setInterval(() => {
-      if (gameState.players.length > 0) {
-        const updatedGameState = {
-          ...gameState,
-          players: gameState.players.map(player => ({
+      if (user) {
+        // Load current game state from localStorage
+        const savedGameState = JSON.parse(localStorage.getItem('aveo-casino-game') || '{"players": [], "currentSpin": {"isSpinning": false, "result": null, "startTime": null}, "history": []}');
+        
+        // Update current user's status
+        const updatedPlayers = savedGameState.players.map((player: Player) => {
+          if (player.id === user.id) {
+            return {
+              ...player,
+              balance: user.balance,
+              isOnline: true,
+              lastSeen: Date.now()
+            };
+          }
+          // Simulate other players' activity - they stay online longer
+          return {
             ...player,
-            isOnline: Math.random() > 0.1 // Simulate players going online/offline
-          }))
+            isOnline: Math.random() > 0.05, // 95% chance to be online
+            lastSeen: Date.now(),
+            balance: player.balance // Keep their balance stable
+          };
+        });
+        
+        // Add current user if not in the list
+        if (!updatedPlayers.find((p: Player) => p.id === user.id)) {
+          updatedPlayers.push({
+            ...user,
+            isOnline: true,
+            lastSeen: Date.now()
+          });
         }
-        setGameState(updatedGameState)
-        localStorage.setItem('aveo-casino-game', JSON.stringify(updatedGameState))
+        
+        // Update game state
+        setGameState(prev => ({
+          ...prev,
+          players: updatedPlayers,
+          currentSpin: savedGameState.currentSpin || prev.currentSpin,
+          history: savedGameState.history || prev.history
+        }));
+        
+        // Save updated state
+        localStorage.setItem('aveo-casino-game', JSON.stringify({
+          players: updatedPlayers,
+          currentSpin: gameState.currentSpin,
+          history: gameState.history
+        }));
       }
-    }, 5000)
+    }, 2000); // Update every 2 seconds for real-time feel
 
-    return () => clearInterval(interval)
-  }, [gameState])
+    return () => clearInterval(interval);
+  }, [user, gameState.currentSpin, gameState.history]);
 
   const login = async (username: string) => {
     const newUser: User = {
@@ -535,57 +571,153 @@ export default function Home() {
 
                      {/* Center - Roulette Wheel */}
                      <div className="lg:col-span-2">
-                       <div className="flex flex-col items-center space-y-8">
-                         {/* Premium Roulette Wheel */}
+                       <div className="flex flex-col lg:flex-row items-center space-y-8 lg:space-y-0 lg:space-x-8">
+                         
+                         {/* 3D Chevrolet Aveo Car */}
                          <div className="relative">
                            <motion.div
-                             className="relative w-96 h-96"
-                             style={{ rotate: wheelRotation }}
+                             className="relative w-80 h-60 bg-gradient-to-br from-gray-900 to-black border-2 border-yellow-400/30 rounded-2xl p-6 shadow-2xl"
+                             initial={{ opacity: 0, x: -50 }}
+                             animate={{ opacity: 1, x: 0 }}
+                             transition={{ duration: 1 }}
                            >
-                             {/* Wheel Background */}
-                             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gray-800 to-black border-4 border-yellow-400 shadow-2xl shadow-yellow-400/30">
-                               {/* Numbers around the wheel */}
-                               {Array.from({ length: 37 }, (_, i) => (
-                                 <div
-                                   key={i}
-                                   className="absolute w-12 h-12 flex items-center justify-center text-white font-bold text-sm rounded-full"
-                                   style={{
-                                     transform: `rotate(${i * (360 / 37)}deg) translateY(-176px)`,
-                                     transformOrigin: 'center',
-                                     backgroundColor: i === 0 ? '#16a34a' : isRed(i) ? '#dc2626' : '#000000'
-                                   }}
-                                 >
-                                   {i}
+                             {/* Car Display */}
+                             <div className="relative w-full h-full">
+                               {/* Car Body */}
+                               <motion.div
+                                 className="absolute inset-0 bg-gradient-to-br from-red-600 via-red-700 to-red-800 rounded-lg shadow-xl"
+                                 animate={{ 
+                                   boxShadow: [
+                                     "0 0 20px rgba(239, 68, 68, 0.5)",
+                                     "0 0 40px rgba(239, 68, 68, 0.8)",
+                                     "0 0 20px rgba(239, 68, 68, 0.5)"
+                                   ]
+                                 }}
+                                 transition={{ duration: 2, repeat: Infinity }}
+                               >
+                                 {/* Car Windows */}
+                                 <div className="absolute top-4 left-4 right-4 h-16 bg-gradient-to-b from-blue-200 to-blue-300 rounded-t-lg opacity-80"></div>
+                                 <div className="absolute bottom-8 left-4 right-4 h-12 bg-gradient-to-b from-blue-200 to-blue-300 rounded-t-lg opacity-60"></div>
+                                 
+                                 {/* Car Wheels */}
+                                 <div className="absolute bottom-2 left-6 w-8 h-8 bg-gray-800 rounded-full border-2 border-gray-600"></div>
+                                 <div className="absolute bottom-2 right-6 w-8 h-8 bg-gray-800 rounded-full border-2 border-gray-600"></div>
+                                 
+                                 {/* Car Headlights */}
+                                 <div className="absolute top-2 left-2 w-3 h-3 bg-yellow-300 rounded-full shadow-lg"></div>
+                                 <div className="absolute top-2 right-2 w-3 h-3 bg-yellow-300 rounded-full shadow-lg"></div>
+                               </motion.div>
+                               
+                               {/* Chevrolet Logo */}
+                               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-xl">
+                                   <Car className="w-8 h-8 text-red-600" />
                                  </div>
-                               ))}
+                               </div>
+                               
+                               {/* Prize Label */}
+                               <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-500 to-orange-500 text-black px-4 py-2 rounded-lg font-bold text-sm shadow-xl">
+                                 ГЛАВНЫЙ ПРИЗ
+                               </div>
                              </div>
                              
-                             {/* Center Hub */}
-                             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full border-4 border-black shadow-lg"></div>
-                           </motion.div>
-
-                           {/* Ball */}
-                           <motion.div
-                             className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full shadow-lg z-10"
-                             animate={gameState.currentSpin.isSpinning ? {
-                               x: [0, 50, -30, 20, 0],
-                               y: [0, -30, 40, -20, 0],
-                               rotate: [0, 180, 360]
-                             } : {}}
-                             transition={{ duration: 4, ease: "easeInOut" }}
-                           />
-
-                           {/* Result Display */}
-                           {gameState.currentSpin.result !== null && (
+                             {/* Floating Coins Animation */}
                              <motion.div
-                               initial={{ scale: 0, rotate: -180 }}
-                               animate={{ scale: 1, rotate: 0 }}
-                               className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-black text-3xl px-8 py-4 rounded-2xl shadow-2xl shadow-yellow-500/50"
+                               className="absolute -top-4 -right-4"
+                               animate={{ 
+                                 y: [0, -10, 0],
+                                 rotate: [0, 360]
+                               }}
+                               transition={{ duration: 3, repeat: Infinity }}
                              >
-                               {gameState.currentSpin.result}
+                               <Coins className="w-6 h-6 text-yellow-400" />
                              </motion.div>
-                           )}
+                             
+                             <motion.div
+                               className="absolute -top-2 -left-4"
+                               animate={{ 
+                                 y: [0, -15, 0],
+                                 rotate: [0, -360]
+                               }}
+                               transition={{ duration: 4, repeat: Infinity, delay: 1 }}
+                             >
+                               <Coins className="w-4 h-4 text-yellow-400" />
+                             </motion.div>
+                           </motion.div>
+                           
+                           {/* Price Display */}
+                           <div className="mt-4 text-center">
+                             <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black px-6 py-3 rounded-xl font-bold text-xl shadow-xl">
+                               1,000,000 тугриков
+                             </div>
+                             <p className="text-yellow-400 text-sm mt-2 font-medium">
+                               Chevrolet Aveo - Лучшая машина в мире!
+                             </p>
+                           </div>
                          </div>
+                        {/* Premium Roulette Wheel */}
+                        <div className="relative w-96 h-96 mx-auto">
+                          <motion.div
+                            className="relative w-full h-full"
+                            animate={{ rotate: wheelRotation }}
+                            transition={{ duration: 4, ease: "easeOut" }}
+                          >
+                            {/* Wheel Background */}
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gray-800 to-black border-4 border-yellow-400 shadow-2xl shadow-yellow-400/30 overflow-hidden">
+                              
+                              {/* Traditional Roulette Layout - Numbers positioned correctly */}
+                              {[0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26].map((num, index) => {
+                                const angle = (360 / 37) * index - 90; // Start from top, go clockwise
+                                const radius = 160;
+                                const x = Math.cos((angle * Math.PI) / 180) * radius;
+                                const y = Math.sin((angle * Math.PI) / 180) * radius;
+                                
+                                return (
+                                  <div
+                                    key={num}
+                                    className="absolute w-10 h-10 flex items-center justify-center text-white font-bold text-xs border border-white/20"
+                                    style={{
+                                      backgroundColor: num === 0 ? '#16a34a' : isRed(num) ? '#dc2626' : '#000000',
+                                      left: `calc(50% + ${x}px - 20px)`,
+                                      top: `calc(50% + ${y}px - 20px)`,
+                                      transform: `rotate(${angle + 90}deg)`,
+                                    }}
+                                  >
+                                    <span style={{ transform: `rotate(${-angle - 90}deg)` }}>
+                                      {num}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                              
+                              {/* Inner wheel border */}
+                              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-to-br from-gray-700 to-black border-2 border-yellow-400 rounded-full"></div>
+                            </div>
+                            
+                            {/* Center Hub */}
+                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full border-4 border-white shadow-xl flex items-center justify-center">
+                              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                                <div className="w-4 h-4 bg-gray-800 rounded-full"></div>
+                              </div>
+                            </div>
+                          </motion.div>
+
+                          {/* Ball */}
+                          <motion.div
+                            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-gradient-to-br from-white to-gray-300 rounded-full border border-gray-400 shadow-lg z-10"
+                            animate={gameState.currentSpin.isSpinning ? {
+                              x: [0, 60, -40, 30, 0],
+                              y: [0, -40, 50, -30, 0],
+                              rotate: [0, 360, 720, 1080]
+                            } : {}}
+                            transition={{ duration: 4, ease: "easeInOut" }}
+                          />
+
+                          {/* Result Display */}
+                          <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-black text-2xl px-8 py-4 rounded-2xl shadow-2xl shadow-yellow-500/50 border-2 border-yellow-400">
+                            {gameState.currentSpin.result !== null ? `Выпало: ${gameState.currentSpin.result}` : 'Готово к игре'}
+                          </div>
+                        </div>
 
                          {/* Premium Betting Areas */}
                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-2xl">
