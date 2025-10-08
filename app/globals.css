@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen;
+    background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%239C92AC" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
+  }
+}
+
+@layer components {
+  .casino-button {
+    @apply bg-gradient-to-r from-casino-gold to-yellow-400 text-black font-bold py-3 px-6 rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95;
+  }
+  
+  .casino-button:disabled {
+    @apply opacity-50 cursor-not-allowed hover:scale-100;
+  }
+  
+  .roulette-wheel {
+    @apply w-96 h-96 rounded-full border-8 border-casino-gold relative overflow-hidden;
+    background: conic-gradient(
+      #DC143C 0deg 120deg,
+      #000 120deg 180deg,
+      #DC143C 180deg 300deg,
+      #000 300deg 360deg
+    );
+  }
+  
+  .roulette-ball {
+    @apply w-6 h-6 bg-white rounded-full absolute top-4 left-1/2 transform -translate-x-1/2 shadow-lg;
+  }
+  
+  .betting-area {
+    @apply bg-black/80 backdrop-blur-sm border border-casino-gold rounded-lg p-4;
+  }
+  
+  .chip {
+    @apply w-12 h-12 rounded-full border-2 border-casino-gold flex items-center justify-center font-bold text-sm cursor-pointer transform transition-all duration-200 hover:scale-110;
+  }
+  
+  .chip-10 {
+    @apply bg-blue-500 text-white;
+  }
+  
+  .chip-50 {
+    @apply bg-red-500 text-white;
+  }
+  
+  .chip-100 {
+    @apply bg-green-500 text-white;
+  }
+  
+  .chip-500 {
+    @apply bg-purple-500 text-white;
+  }
+  
+  .chip-1000 {
+    @apply bg-casino-gold text-black;
+  }
+}
+
+@keyframes spin-roulette {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ball-bounce {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-10px);
+  }
+}
+
+.animate-spin-roulette {
+  animation: spin-roulette 3s ease-out forwards;
+}
+
+.animate-ball-bounce {
+  animation: ball-bounce 0.5s ease-in-out infinite;
+}
